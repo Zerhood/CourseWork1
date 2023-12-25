@@ -1,6 +1,5 @@
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EmployeeBook {
     private Employee[] employees;
@@ -10,39 +9,25 @@ public class EmployeeBook {
     }
 
     public void addEmployee(Employee emp) {
-        for (Employee e : employees) {
-            if (e == null) {
-                employees[emp.getId()] = emp;
-                break;
-            }
-        }
+        Arrays.stream(employees)
+                .map(employee -> employees[emp.getId()] = emp)
+                .peek(employee -> System.out.println("Добавлен новый сотрудник - " + employees[emp.getId()].getName()))
+                .findFirst();
     }
 
     public void deleteEmployee(int id) {
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getId() == id) {
-//                    employees[e.getId()] = null;
-//                }
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .filter(e -> e.getId() == id)
+                .peek(e -> System.out.println("Сотрудник - " + e.getName() + " удалён!"))
                 .forEach(e -> employees[e.getId()] = null);
     }
 
     public void deleteEmployee(String name) {
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (Objects.equals(e.getName(), name)) {
-//                    employees[e.getId()] = null;
-//                }
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .filter(e -> e.getName().equals(name))
+                .peek(e -> System.out.println("Сотрудник - " + e.getName() + " удалён!"))
                 .forEach(e -> employees[e.getId()] = null);
     }
 
@@ -50,19 +35,23 @@ public class EmployeeBook {
         for (Employee e : employees) {
             if (e != null) {
                 if (Objects.equals(e.getName(), name)) {
-                    if (salary > 0) {
+                    if (salary > 0 && department > 0 && department <= 5) {
                         e.setSalary(salary);
-                    }
-                    if (department > 0 && department <= 5) {
                         e.setDepartment(department);
+                        System.out.println("Сотрудник - " + e.getName() + " изменён.");
+                    } else {
+                        System.out.println("Ошибка изменения данных!");
                     }
+                } else {
+                    System.out.println("Такой сотрудник не найдет!");
+                    return;
                 }
             }
         }
     }
 
     /**
-     * метод сортирует сотрудников по департаменту и выводит их в порядке увеличения
+     * метод группирует сотрудников по департаменту и выводит их в консоль
      */
     public void getAllEmpByDepartment() {
 //        for (int i = 0; i < employees.length; i++) {
@@ -76,64 +65,34 @@ public class EmployeeBook {
 //                }
 //            }
 //        }
-        Arrays.stream(employees)
+        Map<Integer, List<String>> map = Arrays.stream(employees)
                 .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(Employee::getDepartment))
-                .forEach(s -> System.out.println(s.getDepartment() + " " + s.getName()));
+                .collect(Collectors.groupingBy(Employee::getDepartment, Collectors.mapping(Employee::getName, Collectors.toList())));
+        map.forEach((k, v) -> System.out.println(k + "й отдел, сотрудники: " + v.toString().replaceAll("[]\\[]", "")));
     }
 
     public void getAllEmployee() {
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                System.out.println(e);
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .forEach(System.out::println);
     }
 
     public void getSumSalariesPerMonth() {
-//        int sum = 0;
-//        for (Employee employee : employees) {
-//            if (employee != null) {
-//                sum += employee.getSalary();
-//            }
-//        }
-//        System.out.println(sum);
-        System.out.println(Arrays.stream(employees)
+        System.out.println("Сумма затрат на зарплату за месяц - " + Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .mapToInt(Employee::getSalary)
                 .sum());
     }
 
     public void getEmpMinSalaryInDepartment() {
-//        int min = employees[0].getSalary();
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getSalary() < min) {
-//                    min = e.getSalary();
-//                }
-//            }
-//        }
-//        System.out.println(min);
-        System.out.println(Arrays.stream(employees)
+        System.out.println("Минимальная зарплата - " + Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .mapToInt(Employee::getSalary)
                 .min());
     }
 
     public void getEmpMaxSalaryInDepartment() {
-//        int max = employees[0].getSalary();
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getSalary() > max) {
-//                    max = e.getSalary();
-//                }
-//            }
-//        }
-//        System.out.println(max);
-        System.out.println(Arrays.stream(employees)
+        System.out.println("Максимальная зарплата - " + Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .mapToInt(Employee::getSalary)
                 .max());
@@ -151,54 +110,26 @@ public class EmployeeBook {
 //        }
 //        average = sum / count;
 //        System.out.println(average);
-        System.out.println(Arrays.stream(employees)
+        System.out.println("Средняя зарплата - " + Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .mapToInt(Employee::getSalary)
                 .average());
     }
 
     public void getNameEmployees() {
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                System.out.println(e.getName());
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .forEach(s -> System.out.println(s.getName()));
     }
 
-    /**
-     * Повышенная сложность
-     */
     public void setIndexingSalary(int percent) {
         double newPercent = (double) percent / 100 + 1;
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                e.setSalary((int) (e.getSalary() * newPercent));
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .forEach(e -> e.setSalary((int) (e.getSalary() * newPercent)));
     }
 
     public void getEmpMinSalaryInDepartment(int department) {
-//        if (department > 0 && department < 6) {
-//            int min = employees[0].getSalary();
-//            for (Employee e : employees) {
-//                if (e != null) {
-//                    if (e.getDepartment() == department) {
-//                        if (e.getSalary() < min) {
-//                            min = e.getSalary();
-//                        }
-//                    }
-//                }
-//            }
-//            System.out.println("Сотрудник " + department+ " отдела с минимальной зарплатой - " + min);
-//        } else {
-//            System.out.println("Error count department");
-//        }
         System.out.println("Сотрудник " + department + " отдела с минимальной зарплатой - " +
                 Arrays.stream(employees)
                         .filter(Objects::nonNull)
@@ -208,17 +139,6 @@ public class EmployeeBook {
     }
 
     public void getEmpMaxSalaryInDepartment(int department) {
-//        int max = employees[0].getSalary();
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getDepartment() == department) {
-//                    if (e.getSalary() > max) {
-//                        max = e.getSalary();
-//                    }
-//                }
-//            }
-//        }
-//        System.out.println("Сотрудник " + department + " отдела с максимальной зарплатой - " + max);
         System.out.println("Сотрудник " + department + " отдела с максимальной зарплатой - " +
                 Arrays.stream(employees)
                         .filter(Objects::nonNull)
@@ -228,15 +148,6 @@ public class EmployeeBook {
     }
 
     public void getSumSalariesPerMonthInDepartment(int department) {
-//        int sum = 0;
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getDepartment() == department) {
-//                    sum += e.getSalary();
-//                }
-//            }
-//        }
-//        System.out.println(sum);
         System.out.println("Сумма затрат на зарплату " + department + " отдела составила - " +
                 Arrays.stream(employees)
                         .filter(Objects::nonNull)
@@ -269,13 +180,6 @@ public class EmployeeBook {
 
     public void setIndexingSalaryInDepartment(int percent, int department) {
         double newPercent = (double) percent / 100 + 1;
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getDepartment() == department) {
-//                    e.setSalary((int) (e.getSalary() * newPercent));
-//                }
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .filter(e -> e.getDepartment() == department)
@@ -283,13 +187,6 @@ public class EmployeeBook {
     }
 
     public void getNameEmployeesInDepartment(int department) {
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getDepartment() == department) {
-//                    System.out.println(e.getId() + " " + e.getName() + " " + e.getSalary());
-//                }
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .filter(e -> e.getDepartment() == department)
@@ -297,13 +194,6 @@ public class EmployeeBook {
     }
 
     public void getAllEmpLessSpecNumber(int number) {
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getSalary() < number) {
-//                    System.out.println(e.getId() + " " + e.getName() + " " + e.getSalary());
-//                }
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .filter(e -> e.getSalary() < number)
@@ -311,13 +201,6 @@ public class EmployeeBook {
     }
 
     public void getAllEmpGreatSpecNumber(int number) {
-//        for (Employee e : employees) {
-//            if (e != null) {
-//                if (e.getSalary() >= number) {
-//                    System.out.println(e.getId() + " " + e.getName() + " " + e.getSalary());
-//                }
-//            }
-//        }
         Arrays.stream(employees)
                 .filter(Objects::nonNull)
                 .filter(e -> e.getSalary() >= number)
